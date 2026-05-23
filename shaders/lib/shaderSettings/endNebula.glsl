@@ -7,7 +7,7 @@
 // Color channels use EP's float 0.00-1.00 convention (LIGHT_END_R=195 → 195/255=0.76).
 // The sqrt-gamma encoding in endNebula.glsl then produces the same linear HDR value.
 
-//#define END_NEBULA
+#define END_NEBULA
 #define END_BLACK_HOLE
 //#define END_VOID_CLOUDS
 //#define END_VOID_VORTEX
@@ -57,7 +57,7 @@
 #define VORTEX_STEPS      16   //[4 6 8 10 12 16 24 32]
 #define END_VORTEX_DENSITY 1.00 //[0.25 0.50 0.75 1.00 1.25 1.50 2.00]
 #define END_HAZE_DENSITY   1.00 //[0.00 0.25 0.50 0.75 1.00 1.50 2.00]
-#define END_VORTEX_BRIGHTNESS 1.00 //[0.10 0.25 0.50 0.75 1.00 1.25 1.50 2.00 3.00 4.00 5.00]
+#define END_VORTEX_BRIGHTNESS 5.00 //[0.10 0.25 0.50 0.75 1.00 1.25 1.50 2.00 3.00 4.00 5.00]
 
 // Vortex light color — Eclipse defaults: AmbientLightEnd_R/G/B = 0.30/0.35/1.00
 #define VORTEX_LIGHT_R 0.30 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
@@ -76,9 +76,9 @@
 // Raymarched cloud layer at a fixed world height — looks like a protoplanetary disk.
 // Ported from Solas shaders/lib/atmosphere/volumetricClouds.glsl by Septonious.
 #define END_DISK_CLOUDS
-#define END_DISK_HEIGHT     0.0 //[-200.0 -160.0 -120.0 -80.0 -60.0 -40.0 -20.0 0.0 20.0 40.0 60.0]
-#define END_DISK_AMOUNT      9.0 //[7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0]
-#define END_DISK_THICKNESS  12.0 //[4.0 6.0 8.0 10.0 12.0 14.0 16.0 18.0 20.0]
+#define END_DISK_HEIGHT   -60.0 //[-200.0 -160.0 -120.0 -80.0 -60.0 -40.0 -20.0 0.0 20.0 40.0 60.0]
+#define END_DISK_AMOUNT     9.0 //[7.5 8.0 8.5 9.0 9.5 10.0 10.5 11.0]
+#define END_DISK_THICKNESS 12.0 //[4.0 6.0 8.0 10.0 12.0 14.0 16.0 18.0 20.0]
 #define END_DISK_OPACITY     1.0 //[0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
 
 #endif // END_NEBULA_SETTINGS_GLSL

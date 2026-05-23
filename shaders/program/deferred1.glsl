@@ -25,11 +25,6 @@ flat in vec3 upVec, sunVec, eastVec;
 //Pipeline Constants//
 const bool colortex0MipmapEnabled = true;
 
-#if defined END && defined END_VOID_VORTEX
-    // TAA-blended vortex fog written by deferred.glsl pre-pass (persistent colortex11).
-    uniform sampler2D colortex11;
-#endif
-
 //Common Variables//
 float SdotU = dot(sunVec, upVec);
 float sunFactor = SdotU < 0.0 ? clamp(SdotU + 0.375, 0.0, 0.75) / 0.75 : clamp(SdotU + 0.03125, 0.0, 0.0625) / 0.0625;
@@ -210,8 +205,9 @@ float CalculateLinearDepth(float depth_sample, float near_plane, float far_plane
 #if defined END && (defined END_NEBULA || defined END_BLACK_HOLE || defined END_VOID_CLOUDS)
     #include "/lib/atmospherics/endNebula.glsl"
 #endif
-// END_VOID_VORTEX raymarching is now in deferred.glsl (TAA pre-pass).
-// deferred1 reads the blended result from colortex11 — no per-pixel raymarch here.
+#if defined END && defined END_VOID_VORTEX
+    #include "/lib/atmospherics/endVortex.glsl"
+#endif
 #if defined END && defined END_DISK_CLOUDS
     #include "/lib/atmospherics/endClouds.glsl"
 #endif
@@ -403,10 +399,9 @@ void main() {
                 vec3 endWorldDir = mat3(gbufferModelViewInverse) * nViewPos;
             #endif
             #ifdef END_VOID_VORTEX
-                // Read TAA-blended vortex from colortex11 (written by deferred.glsl pre-pass).
-                // Volumetric composite: keep background where fog is thin (.a → 1),
-                // attenuate where dense (.a → 0); vortex.rgb is the fog self-emission.
-                vec4 epVortex = texture2DLod(colortex11, texCoord, 0);
+                float epVortexDither = fract(dither + goldenRatio * mod(float(frameCounter), 3600.0));
+                float epVortexDither2 = fract(dither + 0.3819660113 + mod(float(frameCounter), 17.0) * 0.07);
+                vec4 epVortex = GetEndVortex(nViewPos * 256.0, epVortexDither, epVortexDither2);
                 color.rgb = color.rgb * epVortex.a + epVortex.rgb * (END_VORTEX_BRIGHTNESS / 5.0);
             #endif
             #if defined END_NEBULA || defined END_BLACK_HOLE || defined END_VOID_CLOUDS
@@ -431,7 +426,7 @@ void main() {
     #ifdef END
         #ifdef END_SMOKE
             vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos.xyz * 1000.0, 1.0)).xyz);
-            vec3 endSmoke = texture2DLod(noisetex, (wpos.xz / wpos.y) * 0.5 + frameTimeCounter * 0.004, 0.0).g * abs(VdotU) * endSkyColor * 1.5;
+            vec3 endSmoke = texture2DLod(solasEndNoiseTex, (wpos.xz / wpos.y) * 0.5 + frameTimeCounter * 0.004, 0.0).g * abs(VdotU) * endSkyColor * 1.5;
             color.rgb += pow4(skyFade) * endSmoke * (1.0 - maxBlindnessDarkness);
         #endif
     #endif

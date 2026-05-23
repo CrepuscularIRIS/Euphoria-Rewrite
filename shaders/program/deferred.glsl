@@ -3,16 +3,9 @@
 // With Euphoria Patches by SpacEagle17 //
 //////////////////////////////////////////
 
-// End Vortex TAA Pre-pass
-// Runs before deferred1.glsl. In the End, raymarches GetEndVortex per pixel and
-// blends the result with the previous frame stored in colortex11 (Bliss-style TAA).
-// deferred1.glsl reads colortex11 directly — no per-pixel raymarch in the sky pass.
-//
-// Why this works:
-//   The TAA blend rate (clamp(4*frameTime, 0, 1) ≈ 0.064 at 60fps) means each frame
-//   contributes only ~6.4% of the new value. Noise at any single pixel is averaged
-//   over ~15 frames, matching Bliss's colortex4 LUT accumulation (mixhistory ≈ 0.067).
-//   colortex11 is persistent (clear=false in shaders.properties).
+// Bliss-style End vortex LUT pre-pass.
+// Writes a persistent 256x256 direction-space LUT into colortex10 and keeps a few
+// reserved texels for lightning timer/flash/position state.
 
 #include "/lib/common.glsl"
 #if defined END
@@ -27,31 +20,58 @@
 
 noperspective in vec2 texCoord;
 
-uniform sampler2D colortex11;  // persistent vortex TAA history buffer
-
-/*DRAWBUFFERS:b*/
+/*DRAWBUFFERS:a*/
 void main() {
 #if defined END && defined END_VOID_VORTEX
-    // Reconstruct the sky-direction world vector for this pixel (always at sky depth).
-    // This matches the direction deferred1 computes for sky pixels (z0 = 1.0).
-    vec4 viewPos = gbufferProjectionInverse * (vec4(texCoord, 1.0, 1.0) * 2.0 - 1.0);
-    viewPos /= viewPos.w;
-    vec3 worldDir = normalize(mat3(gbufferModelViewInverse) * viewPos.xyz);
+    ivec2 pixel = ivec2(gl_FragCoord.xy);
+    vec4 prevTex = texelFetch(colortex10, pixel, 0);
+    vec4 currTex = prevTex;
+    float mixhistory = 0.06;
 
-    float dither = texture2DLod(noisetex, texCoord * vec2(viewWidth, viewHeight) / 128.0, 0.0).b;
-    #ifdef TAA
-        dither = fract(dither + goldenRatio * mod(float(frameCounter), 3600.0));
-    #endif
+    if (gl_FragCoord.y < 1.0) {
+        float flash = 0.0;
+        const float maxWaitTime = 5.0;
 
-    vec4 currVortex = GetEndVortex(worldDir, dither);
-    vec4 prevVortex = texture2DLod(colortex11, texCoord, 0);
+        float timer = texelFetch(colortex10, VP_LIGHTNING_TIMER_TEXEL, 0).x;
+        timer -= frameTime;
 
-    // Bliss TAA blend rate: clamp(4 * frameTime, 0, 1).
-    // At 60fps ≈ 0.064 (matches Bliss mixhistory ≈ 0.067).
-    float mixhistory = clamp(4.0 * frameTime, 0.0, 1.0);
-    gl_FragData[0] = mix(prevVortex, currVortex, mixhistory);
+        if (timer <= 0.0) {
+            flash = 1.0;
+            timer = pow(hash11(float(frameCounter)), 5.0) * maxWaitTime;
+        }
+
+        if (all(equal(pixel, VP_LIGHTNING_TIMER_TEXEL))) {
+            mixhistory = 1.0;
+            currTex = vec4(timer, 0.0, 0.0, 1.0);
+        } else if (all(equal(pixel, VP_LIGHTNING_FLASH_TEXEL))) {
+            mixhistory = clamp(4.0 * frameTime, 0.0, 1.0);
+            currTex = vec4(flash, 0.0, 0.0, 1.0);
+        } else if (all(equal(pixel, VP_LIGHTNING_POS_TEXEL))) {
+            mixhistory = clamp(500.0 * frameTime, 0.0, 1.0);
+
+            vec3 lastPos = texelFetch(colortex10, VP_LIGHTNING_POS_TEXEL, 0).xyz * 2.0 - 1.0;
+            lastPos += vpHash31(float(frameCounter / 50)) * 2.0 - 1.0;
+            lastPos = lastPos * 0.5 + 0.5;
+
+            if (timer > maxWaitTime * 0.7) {
+                lastPos = vec3(0.0);
+            }
+
+            currTex = vec4(lastPos, 1.0);
+        }
+    } else {
+        vec2 lutCoord = vpCurrentEndVortexLUTCoord();
+        vec3 viewVector = vpCartToSphere(lutCoord);
+        vec3 viewPosition = mat3(gbufferModelView) * viewVector * 256.0;
+
+        float dither = fract(float(frameCounter) / 1.6180339887);
+        float dither2 = fract(float(frameCounter) / 2.6180339887);
+
+        currTex = GetEndVortex(viewPosition, dither, dither2);
+    }
+
+    gl_FragData[0] = mix(prevTex, currTex, mixhistory);
 #else
-    // Non-END or vortex disabled: discard so colortex11 retains previous value.
     discard;
 #endif
 }

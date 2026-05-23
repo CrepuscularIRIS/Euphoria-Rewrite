@@ -2880,7 +2880,7 @@ option.END_CLOUD_BRIGHTNESS.comment=Multiplier on the final cloud color. Does no
 option.END_VOID_CLOUD_SETTINGS=End Void Clouds
 
 option.END_VOID_VORTEX=End Void Vortex
-option.END_VOID_VORTEX.comment=Raymarched swirling void-fog tornado centered at the End island (Y=0). §eEclipse-shader-inspired.§r
+option.END_VOID_VORTEX.comment=Raymarched swirling void-fog tornado centered at the End island (Y=0), cached in a persistent Bliss-style direction LUT.
 
 option.VORTEX_STEPS=Vortex Ray Steps
 option.VORTEX_STEPS.comment=Number of raymarch samples per pixel. Higher = more detail but costs GPU time.
@@ -2889,7 +2889,7 @@ option.END_VORTEX_DENSITY=Vortex Density
 option.END_VORTEX_DENSITY.comment=Overall density of the swirling fog volume. Higher = more opaque storm.
 
 option.END_VORTEX_BRIGHTNESS=Vortex Brightness
-option.END_VORTEX_BRIGHTNESS.comment=Overall brightness multiplier for the End vortex fog. Increase if the fog looks too dim, decrease if blown out. §eDefault: 1.00§r
+option.END_VORTEX_BRIGHTNESS.comment=Overall brightness multiplier for the End vortex fog. §eBliss-equivalent default: 5.00§r
 
 option.END_HAZE_DENSITY=Haze Density
 option.END_HAZE_DENSITY.comment=Density of the thin atmospheric haze filling the End sky. Does not absorb light.

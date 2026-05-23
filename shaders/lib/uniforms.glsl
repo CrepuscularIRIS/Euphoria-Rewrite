@@ -105,6 +105,7 @@ uniform sampler2D gaux2;
 uniform sampler2D gaux4;
 uniform sampler2D normals;
 uniform sampler2D noisetex;
+uniform sampler2D solasEndNoiseTex;
 uniform sampler2D specular;
 uniform sampler2D tex;
 

@@ -9,7 +9,7 @@
 
 #define NETHER_NOISE 0 //[0 1]
 
-//#define END_SMOKE
+#define END_SMOKE
 
 #define EP_END_FLASH 0 //[0 1 2]
 #ifdef EP_END_FLASH

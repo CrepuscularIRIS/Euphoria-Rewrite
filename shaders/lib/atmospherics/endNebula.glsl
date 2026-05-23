@@ -26,12 +26,16 @@ vec3 epNebulaCol1       = epNebulaCol1Sqrt  * epNebulaCol1Sqrt;
 vec3 epNebulaCol2Sqrt   = vec3(NEBULA_END_SECOND_R, NEBULA_END_SECOND_G, NEBULA_END_SECOND_B) * NEBULA_END_SECOND_I;
 vec3 epNebulaCol2       = epNebulaCol2Sqrt * epNebulaCol2Sqrt;
 
+vec4 sampleSolasEndNoise(vec2 coord) {
+    return texture2DLod(solasEndNoiseTex, coord, 0.0);
+}
+
 // ---- 3-sample noise function (identical to Solas) ---------------------------
 void sampleEndNebulaNoise(vec2 coord, inout float colorMixer, inout float noise) {
-    colorMixer  = texture2DLod(noisetex, coord * 0.25,  0.0).r;
-    noise       = texture2DLod(noisetex, coord * 0.50,  0.0).r;
+    colorMixer  = sampleSolasEndNoise(coord * 0.25).r;
+    noise       = sampleSolasEndNoise(coord * 0.50).r;
     noise      *= colorMixer;
-    noise      *= texture2DLod(noisetex, coord * 0.125, 0.0).r;
+    noise      *= sampleSolasEndNoise(coord * 0.125).r;
     noise      *= 2.0 + noise * 20.0;
 }
 
@@ -61,11 +65,12 @@ void DrawEndNebula(inout vec3 color, vec3 worldDir, float VoU, float VoS) {
     float absVoU      = abs(VoU);
     float sqrtAbsVoU  = sqrt(absVoU);
     float blackHoleSize = END_BLACK_HOLE_SIZE;
+    float VoSBH       = clamp01(VoS);
 
     // ---- Black hole mask ---------------------------------------------------
     // Solas: pow(pow4(pow32(VoS)), blackHoleSize) = VoS^(128*blackHoleSize)
     // VoS^2 is always ≥ 0; chaining pow4 gives VoS^128 without undefined pow(neg).
-    float vs2   = VoS * VoS;              // VoS^2  (always ≥ 0)
+    float vs2   = VoSBH * VoSBH;          // Forward-hemisphere only to avoid a mirrored second core
     float vs128 = pow4(pow4(pow4(vs2)));  // VoS^128 (always ≥ 0)
     float hole  = pow(vs128, blackHoleSize);
     float gravityLens = hole;
@@ -93,16 +98,15 @@ void DrawEndNebula(inout vec3 color, vec3 worldDir, float VoU, float VoS) {
 
     // ---- Nebula visibility (Solas formula) ---------------------------------
     // Attenuates nebula near the black hole core and boosts it on the disk ring.
-    float VoSc           = clamp01(VoS);
-    float nebulaVis      = (0.175 - VoS * VoS * VoS * 0.175)
-                         + pow(abs(VoS), 20.0) * 0.425;
+    float nebulaVis      = (0.175 - VoSBH * VoSBH * VoSBH * 0.175)
+                         + pow(VoSBH, 20.0) * 0.425;
 
     // ---- Nebula color composition ------------------------------------------
     vec3 blackHoleAccent = vec3(5.6, 3.2, 0.7) * epBHLightCol; // Solas's exact BH glow
     vec3 nebula = mix(epNebulaCol1, epNebulaCol2, clamp01(nebulaColorMixer))
                   * nebulaNoise * nebulaNoise * nebulaVis;
-         nebula *= 1.0 + blackHoleAccent * pow(abs(VoS), 24.0) * 0.25; // Solas BH tinting (even pow → |VoS|^24, nonzero on far hemisphere)
-         nebula *= max(1.0 - pow(abs(VoS), 32.0), 0.0);             // kill nebula at BH center
+         nebula *= 1.0 + blackHoleAccent * pow(VoSBH, 24.0) * 0.25;
+         nebula *= max(1.0 - pow(VoSBH, 32.0), 0.0);
          nebula *= length(nebula) * END_NEBULA_BRIGHTNESS;
 
     #ifdef END_NEBULA
@@ -118,15 +122,15 @@ void DrawEndNebula(inout vec3 color, vec3 worldDir, float VoU, float VoS) {
              cloudCoord += warping * gravityLens * END_CLOUD_WARP;
              cloudCoord += cameraPosition.xz * 0.00012;
 
-        float cn1 = texture2DLod(noisetex, cloudCoord * 0.30, 0.0).r;
-        float cn2 = texture2DLod(noisetex, cloudCoord * 0.75 + vec2(0.31, 0.71), 0.0).r;
+        float cn1 = sampleSolasEndNoise(cloudCoord * 0.30).r;
+        float cn2 = sampleSolasEndNoise(cloudCoord * 0.75 + vec2(0.31, 0.71)).r;
         float cloud  = cn1 * cn2;
               cloud  = cloud * cloud * END_CLOUD_DENSITY * 3.0;
-              cloud *= max(1.0 - pow(abs(VoS), 16.0), 0.0); // clear at BH core
+              cloud *= max(1.0 - pow(VoSBH, 16.0), 0.0); // clear at BH core
               cloud *= 1.0 - pow(absVoU, 1.5);               // clear near zenith/nadir
 
         vec3 cloudColor = epBHLightCol * mix(0.25, 0.45, clamp01(cn1));
-             cloudColor *= 1.0 + blackHoleAccent * pow(VoSc, 12.0) * 0.4;
+             cloudColor *= 1.0 + blackHoleAccent * pow(VoSBH, 12.0) * 0.4;
              cloudColor *= cloud * END_CLOUD_BRIGHTNESS;
         color += cloudColor;
     }
@@ -142,7 +146,8 @@ void DrawEndNebula(inout vec3 color, vec3 worldDir, float VoU, float VoS) {
     // Accretion torus — shape from Solas torus formula.
     // END_DISK_TILT_FACTOR default = 1+(180-abs(-70))/8 = 14.75 (Solas SUN_ANGLE_END=-70)
     float torus = 1.0 - clamp(length(bHoleCoord), 0.0, 1.0);
-          torus = pow(pow(torus * torus, END_DISK_TILT_FACTOR * (0.5 + 0.5 * sqrtAbsVoU)),
+    float torusTilt = 1.0 + (END_DISK_TILT_FACTOR - 1.0) * (0.5 + 0.5 * sqrtAbsVoU);
+          torus = pow(pow(torus * torus, torusTilt),
                       sqrt(blackHoleSize) * 1.5);
 
     // Disk noise (animated rotation — Solas: frameTimeCounter * 0.025)
@@ -151,7 +156,7 @@ void DrawEndNebula(inout vec3 color, vec3 worldDir, float VoU, float VoS) {
          noiseCoord -= vec2(frameTimeCounter * 0.025, 0.0);
          noiseCoord.y *= 0.33;
          noiseCoord   *= 2.0;
-    float bhNoise = texture2DLod(noisetex, noiseCoord, 0.0).r;
+    float bhNoise = sampleSolasEndNoise(noiseCoord).r;
 
     // Solas's exact black hole color composition:
     color += mix(blackHoleAccent, vec3(4.0 + hole * hole * 2.0), hole * hole)
