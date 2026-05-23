@@ -321,7 +321,7 @@
 
     #define RENDER_EDGE_FADE_TRANSITION_PERCENT 0.15 // improved DH fading by JoKerTech
 
-    #define END_SUN_ANGLE 0 //[0 -20 -30 -40 -50 -60 60 50 40 30 20]
+    #define END_SUN_ANGLE -70 //[-70 0 -20 -30 -40 -50 -60 60 50 40 30 20]
 
     #define BORDER_FOG_NETHER
     #define BORDER_FOG_END
@@ -422,7 +422,9 @@
     #endif
     // Thanks to SpacEagle17 and isuewo for the sun angle handling
     #ifdef END
-        #if END_SUN_ANGLE == 0
+        #if END_SUN_ANGLE == -70
+            const float sunPathRotation = -70.0;
+        #elif END_SUN_ANGLE == 0
             const float sunPathRotation = 0.0;
         #elif END_SUN_ANGLE == 20
             const float sunPathRotation = 20.0;

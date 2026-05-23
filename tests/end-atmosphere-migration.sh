@@ -21,6 +21,10 @@ check '^#define END_NEBULA$' \
   "$root/shaders/lib/shaderSettings/endNebula.glsl" \
   'Solas end background must be enabled'
 
+check '^    #define END_SUN_ANGLE -70 ' \
+  "$root/shaders/lib/common.glsl" \
+  'End black hole sky anchor must default to the Solas end sun angle'
+
 check '^uniform sampler2D solasEndNoiseTex;$' \
   "$root/shaders/lib/uniforms.glsl" \
   'A dedicated Solas end noise sampler must be declared'
