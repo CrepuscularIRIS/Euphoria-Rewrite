@@ -1474,7 +1474,7 @@ value.RANDOM_AURORA.8=80% Chance
 value.RANDOM_AURORA.9=90% Chance
 
 option.DIMENSION_PRESET=Dimension Preset
-option.DIMENSION_PRESET.comment=Select the dimension you are currently playing in to enable dimension-specific aurora and sky effects. §e0§r = Overworld (standard EP aurora), §e1§r = Twilight Forest (LUX Shader v1.2 aurora, always-on), §e2§r = Ratlantis (Solas V3.3 aurora, always-on). §c[!]§r Reload shaders with §eF3+R§r after changing.
+option.DIMENSION_PRESET.comment=Debug override for dimension-specific aurora and sky effects. Twilight Forest and Ratlantis now switch automatically through dedicated shader worlds. §e0§r = Overworld (standard EP aurora), §e1§r = Twilight Forest (LUX Shader v1.2 aurora, always-on), §e2§r = Ratlantis (Solas V3.3 aurora, always-on). §c[!]§r Reload shaders with §eF3+R§r after changing.
 value.DIMENSION_PRESET.0=Overworld
 value.DIMENSION_PRESET.1=Twilight Forest
 value.DIMENSION_PRESET.2=Ratlantis

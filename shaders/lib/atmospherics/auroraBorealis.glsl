@@ -10,7 +10,9 @@
 // 1 = Twilight Forest (LUX Shader v1.2 aurora, always-on)
 // 2 = Ratlantis (Solas V3.3 aurora, always-on)
 // After changing, reload shaders with F3+R.
-#define DIMENSION_PRESET 0 //[0 1 2]
+#ifndef DIMENSION_PRESET
+    #define DIMENSION_PRESET 0 //[0 1 2]
+#endif
 #if DIMENSION_PRESET == 1
     #define DIMENSION_TF
 #elif DIMENSION_PRESET == 2
