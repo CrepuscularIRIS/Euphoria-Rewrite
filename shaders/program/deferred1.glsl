@@ -366,7 +366,11 @@ void main() {
             #endif
         #endif
         #ifdef END
-            color.rgb = endSkyColor;
+            #if defined END_NEBULA || defined END_BLACK_HOLE || defined END_DISK_CLOUDS
+                color.rgb = epEndAmbientColSqrt * 0.175;
+            #else
+                color.rgb = endSkyColor;
+            #endif
             #ifdef END_STARS
                 vec3 starColor = GetEnderStars(viewPos.xyz, VdotU, 1.0, 0.0);
 
@@ -396,7 +400,7 @@ void main() {
             // so the black-hole mask (color *= 1 - hole) attenuates the vortex
             // behind the BH. Otherwise vortex would render on top of the BH void.
             #if defined END_NEBULA || defined END_BLACK_HOLE || defined END_VOID_CLOUDS || defined END_VOID_VORTEX
-                vec3 endWorldDir = mat3(gbufferModelViewInverse) * nViewPos;
+                vec3 endWorldDir = playerPos;
             #endif
             #ifdef END_VOID_VORTEX
                 float epVortexDither = fract(dither + goldenRatio * mod(float(frameCounter), 3600.0));
@@ -426,7 +430,7 @@ void main() {
     #ifdef END
         #ifdef END_SMOKE
             vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos.xyz * 1000.0, 1.0)).xyz);
-            vec3 endSmoke = texture2DLod(solasEndNoiseTex, (wpos.xz / wpos.y) * 0.5 + frameTimeCounter * 0.004, 0.0).g * abs(VdotU) * endSkyColor * 1.5;
+            vec3 endSmoke = texture2DLod(solasEndNoiseTex, (wpos.xz / wpos.y) * 0.5 + frameTimeCounter * 0.004, 0.0).g * abs(VdotU) * epEndAmbientColSqrt * 1.5;
             color.rgb += pow4(skyFade) * endSmoke * (1.0 - maxBlindnessDarkness);
         #endif
     #endif
@@ -447,10 +451,10 @@ void main() {
 
     #if defined END && defined END_DISK_CLOUDS
         if (z0 >= 1.0) {
-            vec3 epEndCloudDir = mat3(gbufferModelViewInverse) * nViewPos;
             vec4 epEndClouds   = vec4(0.0);
-            computeEndDiskClouds(epEndClouds, epEndCloudDir, VdotS, dither, cloudLinearDepth);
-            color.rgb = mix(color.rgb, epEndClouds.rgb, epEndClouds.a);
+            computeEndDiskClouds(epEndClouds, viewPos.xyz, z0, dither, cloudLinearDepth);
+            vec3 epEndCloudColor = pow(epEndClouds.rgb, vec3(1.0 / 2.2));
+            color.rgb = mix(color.rgb, epEndCloudColor, epEndClouds.a);
         }
     #endif
 

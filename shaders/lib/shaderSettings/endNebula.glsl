@@ -43,6 +43,13 @@
 #define END_BHOLE_LIGHT_B 0.65 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
 #define END_BHOLE_LIGHT_I 1.45 //[0.25 0.50 0.75 1.00 1.25 1.45 1.50 1.75 2.00 2.25 2.50]
 
+// End ambient base — Solas V3.3: AMBIENT_END 225/205/195, I=0.35
+// Used for the base End sky color before nebula and disk clouds are added.
+#define END_AMBIENT_R 0.88 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.88 0.90 0.95 1.00]
+#define END_AMBIENT_G 0.80 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80 0.85 0.90 0.95 1.00]
+#define END_AMBIENT_B 0.76 //[0.00 0.05 0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.76 0.80 0.85 0.90 0.95 1.00]
+#define END_AMBIENT_I 0.35 //[0.10 0.15 0.20 0.25 0.30 0.35 0.40 0.45 0.50 0.55 0.60 0.65 0.70 0.75 0.80]
+
 // ---- End Void Clouds (Solas gravity-lens cloud layer) -----------------------
 // Sky-projected cloud wisps at the same visual plane as the accretion disk.
 // Coordinates are in bHoleCoord space and warped by black hole gravity.

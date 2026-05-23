@@ -20,6 +20,9 @@
 vec3 epBHLightColSqrt   = vec3(END_BHOLE_LIGHT_R, END_BHOLE_LIGHT_G, END_BHOLE_LIGHT_B) * END_BHOLE_LIGHT_I;
 vec3 epBHLightCol       = epBHLightColSqrt * epBHLightColSqrt;
 
+vec3 epEndAmbientColSqrt = vec3(END_AMBIENT_R, END_AMBIENT_G, END_AMBIENT_B) * END_AMBIENT_I;
+vec3 epEndAmbientCol     = epEndAmbientColSqrt * epEndAmbientColSqrt;
+
 vec3 epNebulaCol1Sqrt   = vec3(NEBULA_END_FIRST_R,  NEBULA_END_FIRST_G,  NEBULA_END_FIRST_B)  * NEBULA_END_FIRST_I;
 vec3 epNebulaCol1       = epNebulaCol1Sqrt  * epNebulaCol1Sqrt;
 

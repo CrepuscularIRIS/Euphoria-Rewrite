@@ -29,45 +29,65 @@ check '^    customTexture\.solasEndNoiseTex=lib/textures/solas-end-noise\.png$' 
   "$root/shaders/shaders.properties" \
   'The Solas end noise texture must be bound without replacing Euphoria global noise'
 
-check 'float noiseCoverage = abs\(attenuation - 0\.125\) \* \(attenuation > 0\.125 \? 1\.14 : 6\.0\);' \
+check '"blur": true' \
+  "$root/shaders/lib/textures/solas-end-noise.png.mcmeta" \
+  'The Solas end noise texture must enable bilinear filtering to avoid nearest-neighbor block artifacts'
+
+check '"clamp": false' \
+  "$root/shaders/lib/textures/solas-end-noise.png.mcmeta" \
+  'The Solas end noise texture must keep wrapping enabled for tiled cloud and nebula sampling'
+
+check 'float noiseCoverage = abs\(attenuation - 0\.125\) \* \(attenuation > 0\.125 \? 1\.14 : 5\.0\);' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
   'End disk cloud coverage must match Solas'
 
-check 'noiseCoverage \*= noiseCoverage \* 6\.0;' \
+check 'noiseCoverage \*= noiseCoverage \* 5\.0;' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
   'End disk cloud coverage shaping must match Solas'
 
-check 'noise = max\(noise - END_DISK_AMOUNT - 1\.0 \+ epEndProtoplanetaryDisk\(rayPos\) \* 2\.0, 0\.0\);' \
+check 'return min\(spiral \* 1\.75, 1\.5\);' \
+  "$root/shaders/lib/atmospherics/endClouds.glsl" \
+  'End disk cloud spiral shaping must match Solas'
+
+check 'noise = max\(noise - END_DISK_AMOUNT - 1\.0 \+ epEndProtoplanetaryDisk\(rayPos\), 0\.0\);' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
   'End disk cloud central disk boost must match Solas'
 
-check 'float powder = 1\.0 - 0\.925 \* exp\(-pow\(noise, 1\.0 \+ noise \* 7\.0\)\);' \
+check 'float sampleLighting = 0\.05 \+ clamp\(noise - lightingNoise \* \(0\.9 - scattering \* 0\.15\), 0\.0, 0\.95\) \* \(1\.5 \+ scattering\);' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
-  'End disk cloud powder term must match Solas'
+  'End disk cloud lighting response must match Solas'
 
-check 'float directionalScattering = 1\.0 - exp\(-2\.0 \* \(noise - lightingNoise \* 0\.9\)\);' \
+check 'float nearSampleBoost = clamp01\(1\.0 - minDist / 384\.0\);' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
-  'End disk cloud directional scattering must match Solas'
+  'End disk clouds must increase near-camera sample density to reduce close-range stepping artifacts'
 
-check 'texture2DLod\(solasEndNoiseTex, rayPos \+ wind \* 0\.5, 0\.0\)\.g' \
+check 'int sampleCount = int\(min\(planeDifference / rayLength, mix\(64\.0, 96\.0, nearSampleBoost\)\) \+ dither\);' \
+  "$root/shaders/lib/atmospherics/endClouds.glsl" \
+  'End disk clouds must raise the near-camera sample cap when the viewer approaches the cloud volume'
+
+check 'texture2D\(solasEndNoiseTex, rayPos \+ wind \* 0\.5\)\.g' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
   'End disk cloud base noise must use the Solas-specific noise texture'
 
-check 'void computeEndDiskClouds\(inout vec4 vc, vec3 nWorldPos,' \
+check 'void computeEndDiskClouds\(inout vec4 vc, vec3 viewPos, float z, float dither, inout float currentDepth\) \{' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
-  'End disk clouds should stay on the stable direction-based integration path'
+  'End disk clouds must follow the Solas view-space integration path'
 
-check 'vec3 solasDiskLight = vec3\(0\.95, 1\.0, 0\.5\) \* \(diskLightSqrt \* diskLightSqrt\);' \
+check 'vec3 diskLightSqrt = vec3\(END_BHOLE_LIGHT_R, END_BHOLE_LIGHT_G, END_BHOLE_LIGHT_B\) \* END_BHOLE_LIGHT_I;' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
-  'End disk cloud final light color must come from the Solas end-light chain'
+  'End disk cloud final light color must come from the Solas-aligned end light chain'
 
-check 'vec3 euphoriaDiskLight = endLightColor' \
+check 'vec3 endLightCol = diskLightSqrt \* diskLightSqrt;' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
-  'End disk cloud lighting should be corrected through Euphoria''s live End light color'
+  'End disk cloud HDR light color must be rebuilt from the Solas-aligned sqrt-gamma values'
 
-check 'cloudColor \*= cloudLighting \* \(1\.35 \+ scattering \* 1\.2\);' \
+check 'vec3 cloudColor = vec3\(0\.95, 1\.0, 0\.5\) \* endLightCol;' \
   "$root/shaders/lib/atmospherics/endClouds.glsl" \
-  'End disk cloud final lighting must preserve a bright Solas-like white disk under Euphoria tonemapping'
+  'End disk cloud color tint must match Solas'
+
+check 'cloudColor \*= cloudLighting \* 0\.35;' \
+  "$root/shaders/lib/atmospherics/endClouds.glsl" \
+  'End disk cloud final lighting scale must match Solas'
 
 check 'return texture2DLod\(solasEndNoiseTex, coord, 0\.0\);' \
   "$root/shaders/lib/atmospherics/endNebula.glsl" \
@@ -81,7 +101,19 @@ check 'texture2DLod\(solasEndNoiseTex, \(wpos\.xz / wpos\.y\) \* 0\.5 \+ frameTi
   "$root/shaders/program/deferred1.glsl" \
   'End smoke must use the Solas-specific noise texture'
 
-check 'color\.rgb = mix\(color\.rgb, epEndClouds\.rgb, epEndClouds\.a\);' \
+check 'color\.rgb = epEndAmbientColSqrt \* 0\.175;' \
+  "$root/shaders/program/deferred1.glsl" \
+  'End sky base should come from the Solas ambient end color before adding nebula and disk clouds'
+
+check 'vec3 epEndCloudColor = pow\(epEndClouds\.rgb, vec3\(1\.0 / 2\.2\)\);' \
+  "$root/shaders/program/deferred1.glsl" \
+  'End disk cloud color must be gamma-adjusted before sky composition to match Solas'
+
+check 'vec3 endWorldDir = playerPos;' \
+  "$root/shaders/program/deferred1.glsl" \
+  'End nebula and black hole must be anchored from the Solas world-position path, not a pure view direction'
+
+check 'color\.rgb = mix\(color\.rgb, epEndCloudColor, epEndClouds\.a\);' \
   "$root/shaders/program/deferred1.glsl" \
   'End disk clouds must stay on the stable deferred1 sky composition path'
 
