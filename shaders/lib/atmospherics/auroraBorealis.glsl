@@ -5,11 +5,12 @@
 #endif
 #include "/lib/util/colorConversion.glsl"
 
-// ---- Dimension Preset (manual toggle for modded dimensions) ------------------
+// ---- Dimension Preset (wrapper override for modded dimensions) ---------------
 // 0 = Overworld (default EP aurora)
 // 1 = Twilight Forest (LUX Shader v1.2 aurora, always-on)
 // 2 = Ratlantis (Solas V3.3 aurora, always-on)
-// After changing, reload shaders with F3+R.
+// Dedicated shader worlds inject 1/2 automatically; this stays available as a
+// manual debug override.
 #ifndef DIMENSION_PRESET
     #define DIMENSION_PRESET 0 //[0 1 2]
 #endif

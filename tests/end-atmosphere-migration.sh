@@ -17,6 +17,22 @@ check '^//#define END_VOID_VORTEX$' \
   "$root/shaders/lib/shaderSettings/endNebula.glsl" \
   'Bliss vortex must stay disabled in shader settings'
 
+check '^dimension\.world2=twilightforest:twilight_forest$' \
+  "$root/shaders/dimension.properties" \
+  'Twilight Forest must be mapped to its dedicated shader world'
+
+check '^dimension\.world3=rats:ratlantis$' \
+  "$root/shaders/dimension.properties" \
+  'Ratlantis must be mapped to its dedicated shader world'
+
+check '#define DIMENSION_PRESET 1' \
+  "$root/shaders/world2/deferred1.fsh" \
+  'Twilight Forest wrappers must inject the Lux aurora preset'
+
+check '#define DIMENSION_PRESET 2' \
+  "$root/shaders/world3/deferred1.fsh" \
+  'Ratlantis wrappers must inject the Solas aurora preset'
+
 check '^#define END_NEBULA$' \
   "$root/shaders/lib/shaderSettings/endNebula.glsl" \
   'Solas end background must be enabled'
@@ -24,6 +40,30 @@ check '^#define END_NEBULA$' \
 check '^    #define END_SUN_ANGLE -70 ' \
   "$root/shaders/lib/common.glsl" \
   'End black hole sky anchor must default to the Solas end sun angle'
+
+check '^    #define NIGHT_NEBULAE 1 ' \
+  "$root/shaders/lib/common.glsl" \
+  'Night nebulae must be restored to the EP default'
+
+check '^    #define DRAGON_DEATH_EFFECT 1 ' \
+  "$root/shaders/lib/common.glsl" \
+  'Dragon death effect must be restored to the EP default'
+
+check '^    #define END_CRYSTAL_VORTEX 3 ' \
+  "$root/shaders/lib/common.glsl" \
+  'End crystal vortex must be restored to the EP default'
+
+check '^    #define END_PORTAL_BEAM$' \
+  "$root/shaders/lib/common.glsl" \
+  'End portal beam must be restored to the EP default'
+
+check '^    #define END_CENTER_LIGHTING 7 ' \
+  "$root/shaders/lib/common.glsl" \
+  'End center lighting must be restored to the EP default'
+
+check '^#define END_TWINKLING_STARS 10 ' \
+  "$root/shaders/lib/shaderSettings/enderStars.glsl" \
+  'End twinkling stars must be restored to the EP default'
 
 check '^uniform sampler2D solasEndNoiseTex;$' \
   "$root/shaders/lib/uniforms.glsl" \
@@ -120,5 +160,33 @@ check 'vec3 endWorldDir = playerPos;' \
 check 'color\.rgb = mix\(color\.rgb, epEndCloudColor, epEndClouds\.a\);' \
   "$root/shaders/program/deferred1.glsl" \
   'End disk clouds must stay on the stable deferred1 sky composition path'
+
+check '^END_SMOKE=true$' \
+  "$root/../Euphoria-Rewrite.txt" \
+  'End smoke must be re-enabled in the runtime config'
+
+check '^NIGHT_NEBULAE=1$' \
+  "$root/../Euphoria-Rewrite.txt" \
+  'Night nebulae must be restored in the runtime config'
+
+check '^END_TWINKLING_STARS=10$' \
+  "$root/../Euphoria-Rewrite.txt" \
+  'End twinkling stars must be restored in the runtime config'
+
+check '^END_CRYSTAL_VORTEX=3$' \
+  "$root/../Euphoria-Rewrite.txt" \
+  'End crystal vortex must be restored in the runtime config'
+
+check '^END_CENTER_LIGHTING=7$' \
+  "$root/../Euphoria-Rewrite.txt" \
+  'End center lighting must be restored in the runtime config'
+
+check '^DRAGON_DEATH_EFFECT=1$' \
+  "$root/../Euphoria-Rewrite.txt" \
+  'Dragon death effect must be restored in the runtime config'
+
+check '^END_PORTAL_BEAM=true$' \
+  "$root/../Euphoria-Rewrite.txt" \
+  'End portal beam must be restored in the runtime config'
 
 echo "end-atmosphere migration checks passed"
