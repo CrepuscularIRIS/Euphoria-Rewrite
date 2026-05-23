@@ -430,7 +430,7 @@ void main() {
     #ifdef END
         #ifdef END_SMOKE
             vec3 wpos = normalize((gbufferModelViewInverse * vec4(viewPos.xyz * 1000.0, 1.0)).xyz);
-            vec3 endSmoke = texture2DLod(solasEndNoiseTex, (wpos.xz / wpos.y) * 0.5 + frameTimeCounter * 0.004, 0.0).g * abs(VdotU) * epEndAmbientColSqrt * 1.5;
+            vec3 endSmoke = texture2DLod(solasEndNoiseTex, (wpos.xz / wpos.y) * 0.5 + frameTimeCounter * 0.004, 0.0).g * abs(VdotU) * endSkyColor * 1.5;
             color.rgb += pow4(skyFade) * endSmoke * (1.0 - maxBlindnessDarkness);
         #endif
     #endif

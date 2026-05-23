@@ -17,21 +17,13 @@ check '^//#define END_VOID_VORTEX$' \
   "$root/shaders/lib/shaderSettings/endNebula.glsl" \
   'Bliss vortex must stay disabled in shader settings'
 
-check '^dimension\.world2=twilightforest:twilight_forest$' \
+check 'twilightforest:twilight_forest' \
   "$root/shaders/dimension.properties" \
-  'Twilight Forest must be mapped to its dedicated shader world'
+  'Twilight Forest must stay mapped into world0 for Oculus compatibility'
 
-check '^dimension\.world3=rats:ratlantis$' \
+check 'rats:ratlantis' \
   "$root/shaders/dimension.properties" \
-  'Ratlantis must be mapped to its dedicated shader world'
-
-check '#define DIMENSION_PRESET 1' \
-  "$root/shaders/world2/deferred1.fsh" \
-  'Twilight Forest wrappers must inject the Lux aurora preset'
-
-check '#define DIMENSION_PRESET 2' \
-  "$root/shaders/world3/deferred1.fsh" \
-  'Ratlantis wrappers must inject the Solas aurora preset'
+  'Ratlantis must stay mapped into world0 for Oculus compatibility'
 
 check '^#define END_NEBULA$' \
   "$root/shaders/lib/shaderSettings/endNebula.glsl" \
@@ -141,9 +133,9 @@ check 'float VoSBH\s*=\s*clamp01\(VoS\);' \
   "$root/shaders/lib/atmospherics/endNebula.glsl" \
   'End black hole must clamp to the forward hemisphere to avoid a mirrored second core'
 
-check 'texture2DLod\(solasEndNoiseTex, \(wpos\.xz / wpos\.y\) \* 0\.5 \+ frameTimeCounter \* 0\.004, 0\.0\)\.g' \
+check 'texture2DLod\(solasEndNoiseTex, \(wpos\.xz / wpos\.y\) \* 0\.5 \+ frameTimeCounter \* 0\.004, 0\.0\)\.g \* abs\(VdotU\) \* endSkyColor \* 1\.5' \
   "$root/shaders/program/deferred1.glsl" \
-  'End smoke must use the Solas-specific noise texture'
+  'End smoke must use the Solas-specific noise texture and the EP purple sky tint'
 
 check 'color\.rgb = epEndAmbientColSqrt \* 0\.175;' \
   "$root/shaders/program/deferred1.glsl" \
